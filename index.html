@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ChurnAI | Customer Prediction</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top left, #182848, transparent 40%),
+                radial-gradient(circle at bottom right, #301860, transparent 40%),
+                #070b14;
+
+            color: white;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .logo {
+            font-size: 42px;
+            font-weight: bold;
+            letter-spacing: -1px;
+        }
+
+        .logo span {
+            color: #7c6cff;
+        }
+
+        .header p {
+            margin-top: 10px;
+            color: #9ba4b5;
+            font-size: 16px;
+        }
+
+        .card {
+            background: rgba(17, 24, 39, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 22px;
+
+            padding: 35px;
+
+            box-shadow:
+                0 25px 70px rgba(0,0,0,0.45);
+
+            backdrop-filter: blur(15px);
+        }
+
+        .card h2 {
+            margin-bottom: 8px;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            color: #8d97aa;
+            margin-bottom: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 22px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 13px;
+            color: #aeb7c8;
+            margin-bottom: 8px;
+        }
+
+        input,
+        select {
+            width: 100%;
+
+            padding: 13px 14px;
+
+            background: #0c1322;
+            color: white;
+
+            border: 1px solid #283246;
+            border-radius: 10px;
+
+            font-size: 15px;
+
+            outline: none;
+
+            transition: 0.25s;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #7768ff;
+
+            box-shadow:
+                0 0 0 3px rgba(119,104,255,0.15);
+        }
+
+        select option {
+            background: #0c1322;
+        }
+
+        .button-container {
+            margin-top: 30px;
+        }
+
+        button {
+            width: 100%;
+
+            border: none;
+            border-radius: 11px;
+
+            padding: 15px;
+
+            font-size: 16px;
+            font-weight: bold;
+
+            color: white;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #6d5dfc,
+                    #8b5cf6
+                );
+
+            cursor: pointer;
+
+            transition: 0.25s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 10px 30px rgba(124,92,255,0.35);
+        }
+
+        .result {
+            margin-top: 30px;
+
+            padding: 22px;
+
+            border-radius: 14px;
+
+            text-align: center;
+        }
+
+        .danger {
+            background: rgba(239,68,68,0.10);
+            border: 1px solid rgba(239,68,68,0.35);
+        }
+
+        .safe {
+            background: rgba(34,197,94,0.10);
+            border: 1px solid rgba(34,197,94,0.35);
+        }
+
+        .result-title {
+            font-size: 21px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .probability {
+            font-size: 38px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .danger .probability {
+            color: #ff6b6b;
+        }
+
+        .safe .probability {
+            color: #4ade80;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            color: #626d80;
+            font-size: 13px;
+        }
+
+        @media (max-width: 650px) {
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 25px;
+            }
+
+            .logo {
+                font-size: 34px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+
+        <div class="logo">
+            Churn<span>AI</span>
+        </div>
+
+        <p>
+            AI-powered customer retention prediction
+        </p>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2>Customer Analysis</h2>
+
+        <p class="subtitle">
+            Enter customer information to estimate churn risk.
+        </p>
+
+
+        <form method="POST">
+
+            <div class="form-grid">
+
+
+                <div class="field">
+                    <label>Age</label>
+
+                    <input
+                        type="number"
+                        name="age"
+                        placeholder="e.g. 35"
+                        required
+                    >
+                </div>
+
+
+                <div class="field">
+                    <label>Monthly Spend ($)</label>
+
+                    <input
+                        type="number"
+                        step="0.01"
+                        name="monthly_spend"
+                        placeholder="e.g. 89.99"
+                        required
+                    >
+                </div>
+
+
+                <div class="field">
+                    <label>Months Active</label>
+
+                    <input
+                        type="number"
+                        name="months_active"
+                        placeholder="e.g. 24"
+                        required
+                    >
+                </div>
+
+
+                <div class="field">
+                    <label>Support Calls</label>
+
+                    <input
+                        type="number"
+                        min="0"
+                        name="support_calls"
+                        placeholder="e.g. 2"
+                        required
+                    >
+                </div>
+
+
+                <div class="field">
+                    <label>Late Payments</label>
+
+                    <input
+                        type="number"
+                        min="0"
+                        name="late_payments"
+                        placeholder="e.g. 1"
+                        required
+                    >
+                </div>
+
+
+                <div class="field">
+                    <label>Satisfaction Score</label>
+
+                    <input
+                        type="number"
+                        min="1"
+                        max="10"
+                        name="satisfaction"
+                        placeholder="1 - 10"
+                        required
+                    >
+                </div>
+
+
+                <div class="field">
+
+                    <label>Contract Type</label>
+
+                    <select name="contract_type">
+
+                        <option value="Monthly">
+                            Monthly
+                        </option>
+
+                        <option value="Yearly">
+                            Yearly
+                        </option>
+
+                        <option value="Two-Year">
+                            Two-Year
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>Internet Type</label>
+
+                    <select name="internet_type">
+
+                        <option value="Fiber">
+                            Fiber
+                        </option>
+
+                        <option value="DSL">
+                            DSL
+                        </option>
+
+                        <option value="None">
+                            None
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>Discount (%)</label>
+
+                    <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        name="discount"
+                        placeholder="e.g. 10"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="button-container">
+
+                <button type="submit">
+                    Analyze Customer
+                </button>
+
+            </div>
+
+        </form>
+
+
+        {% if prediction is not none %}
+
+            {% if prediction == 1 %}
+
+                <div class="result danger">
+
+                    <div class="result-title">
+                        ⚠ High Churn Risk
+                    </div>
+
+                    <p>
+                        This customer may leave the service.
+                    </p>
+
+                    <div class="probability">
+                        {{ probability }}%
+                    </div>
+
+                    <p>
+                        Churn probability
+                    </p>
+
+                </div>
+
+            {% else %}
+
+                <div class="result safe">
+
+                    <div class="result-title">
+                        ✓ Low Churn Risk
+                    </div>
+
+                    <p>
+                        This customer is likely to stay.
+                    </p>
+
+                    <div class="probability">
+                        {{ probability }}%
+                    </div>
+
+                    <p>
+                        Churn probability
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+        {% endif %}
+
+
+    </div>
+
+
+    <div class="footer">
+        Customer Churn Prediction • Powered by XGBoost
+    </div>
+
+</div>
+
+</body>
+</html>
